@@ -1,0 +1,3 @@
+- [ ] Fetch API 
+- [ ] db schema for jsonplaceholder 
+- [ ] render data
