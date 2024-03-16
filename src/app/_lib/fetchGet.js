@@ -1,6 +1,6 @@
 export const getFetch = () => {
     let res = []
-    fetch("https://jsonplaceholder.typicode.com/todos")
+    fetch("https://randomuser.me/api/?results=10")
     // fetch("https://www.themealdb.com/api/json/v1/1/random.php")
     .then((response) => response.json())
     .then((data) => {
