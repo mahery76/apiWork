@@ -1,12 +1,11 @@
 "use client"
 import axios from "axios";
 import { useEffect, useState } from "react";
-
 const getData = async () => {
   try {
-    const res = await axios.get("https://randomuser.me/api/?results=10")
-    const { results } = res.data
-    // console.log(results)
+    const dataLocations = await axios.get("http://localhost:3000/api/randomUser")
+    const { results } = dataLocations.data
+    console.log(results)
     return results
   } catch (err) {
     console.log(err)
@@ -38,19 +37,23 @@ const extractObjectKeys = (object) => {
   // let objectsKeysFlattened = ["name", "mail", "street", "region"]
   let objectsKeysFlattened = []
   let objectKeys = Object.keys(object)
-  objectKeys.forEach(key => {
+    objectKeys.forEach(key => {
     const value = object[key]
     if (typeof (value) !== "object") {
       objectsKeysFlattened.push(key)
     }
     else {
-      //could you break this down 
       objectsKeysFlattened = [...objectsKeysFlattened, ...extractObjectKeys(value)]
     }
   });
   console.table(objectKeys)
   return objectsKeysFlattened;
 }
+const getFilteredRows = (data, searchTerm) => {
+return data.filter(function (row){
+  return JSON.stringify(row).toLowerCase().includes(searchTerm)
+})
+} 
 
 export default function Home() {
   const [people, setPeople] = useState([])
@@ -58,10 +61,29 @@ export default function Home() {
     head: [], 
     data: [] 
   })
-
-  const sortByColumn = (locationString) => {
-    console.log(locationString)
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  const sortByColumn = (locationItem) => {
+    const newFlattenedLocation = {
+      head: [...flattenedLocations.head],
+      data: [...flattenedLocations.data]
+    }
+    newFlattenedLocation.data.sort(function(a, b ){
+      if(a[locationItem] < b[locationItem]){
+        return -1
+      }
+      else if (a[locationItem] > b[locationItem]){
+        return 1
+      }
+      else{
+        return 0
+      }
+    } 
+    )
+    setFlattenedLocations(newFlattenedLocation)
+    console.log(locationItem)
   }
+
   useEffect(() => {
     getData().then(data => {
       setPeople(data)
@@ -73,15 +95,16 @@ export default function Home() {
   }, [])
   return (
     <main>
+    <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
       <table>
         <thead>
           <tr>
-            {flattenedLocations && flattenedLocations.head.map(function (location, locationIdx) {
+            {flattenedLocations && flattenedLocations.head.map(function (locationItem, locationIdx) {
               return (
                 <th
                   key={locationIdx}
-                  onClick={() => {sortByColumn(location)}}
-                >{location}
+                  onClick={() => {sortByColumn(locationItem)}}
+                >{locationItem}
                 </th>
               )
             })
@@ -90,7 +113,7 @@ export default function Home() {
         </thead>
         <tbody>
           {
-            flattenedLocations && flattenedLocations.data.map(function (location, locationIdx) {
+            flattenedLocations && getFilteredRows(flattenedLocations.data, searchTerm).map(function (location, locationIdx) {
               return (
                 <tr key={locationIdx}>
                   {flattenedLocations.head.map(function (headItem, headItemIdx) {
